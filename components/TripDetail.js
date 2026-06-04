@@ -556,7 +556,7 @@ export default function TripDetail({ trip, plan = {}, onExport, onSave }) {
                     <div style={{ borderTop: `1px solid ${goldBorder}` }}>
                       {day.dayHighlight && (
                         <div style={{ margin: '14px 18px 0', padding: '10px 14px', background: 'rgba(201,169,110,0.07)', border: `1px solid rgba(201,169,110,0.18)`, borderRadius: 10 }}>
-                          <div style={{ fontSize: '0.62rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: goldDim, marginBottom: 4 }}>Today's Highlight</div>
+                          <div style={{ fontSize: '0.62rem', letterSpacing: '0.1em', textTransform: 'uppercase', color: goldDim, marginBottom: 4 }}>Today&apos;s Highlight</div>
                           <div style={{ fontSize: '0.85rem', color: '#E8E2D9' }}>{day.dayHighlight}</div>
                         </div>
                       )}
