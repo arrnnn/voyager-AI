@@ -147,12 +147,12 @@ export default async function SharePage({ params }) {
         <div className="text-center mt-8 p-6 bg-gradient-to-br from-blue-600/20 to-purple-600/20 border border-blue-500/20 rounded-2xl">
           <p className="text-white font-semibold mb-2">Plan your own trip with Voyager AI</p>
           <p className="text-zinc-400 text-sm mb-4">Get personalized itineraries, budget plans, and more</p>
-          
-            href="/"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition text-sm"
-          >
-            Try Voyager AI Free
-          </a>
+          <a
+  href="/"
+  className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition text-sm"
+>
+  Try Voyager AI Free
+</a>
         </div>
 
       </div>
