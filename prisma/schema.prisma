@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(cuid())
+  clerkId      String    @unique
+  email        String    @unique
+  name         String?
+  image        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  trips        Trip[]
+  usage        Usage[]
+  subscription Subscription?
+  @@index([clerkId])
+}
+
+model Trip {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  destination      String
+  budget           Int
+  duration         Int
+  travellers       Int
+  tripType         String
+  saved            Boolean  @default(false)
+  itinerary        String
+  budget_breakdown String?
+  hotels           String?
+  attractions      String?
+  tips             String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Usage {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date             DateTime @default(now())
+  generationsCount Int      @default(1)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  @@unique([userId, date])
+  @@index([userId])
+}
+
+model Subscription {
+  id                 String    @id @default(cuid())
+  userId             String    @unique
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan               String    @default("free")
+  stripeCustomerId   String?   @unique
+  stripeSubId        String?   @unique
+  status             String    @default("active")
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  @@index([stripeCustomerId])
+}
