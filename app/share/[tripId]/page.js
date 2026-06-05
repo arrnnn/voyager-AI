@@ -1,160 +1,310 @@
 import { db } from '@/lib/db';
 import { notFound } from 'next/navigation';
-import { MapPin, Clock, Users, DollarSign } from 'lucide-react';
+import { Clock, Users, DollarSign } from 'lucide-react';
 
+// This page is fully public — no auth needed.
+// Trip is looked up by shareToken (random hex), NOT by raw database ID.
 export default async function SharePage({ params }) {
-  const trip = await db.trip.findUnique({ where: { id: params.tripId } });
+  const trip = await db.trip.findUnique({
+    where: { shareToken: params.tripId }, // params.tripId is actually the token here
+  });
 
-  if (!trip) return notFound();
+  if (!trip || !trip.shareToken) return notFound();
 
   const itinerary = JSON.parse(trip.itinerary || '[]');
-  const budget = JSON.parse(trip.budget_breakdown || '{}');
-  const hotels = JSON.parse(trip.hotels || '[]');
-  const tips = JSON.parse(trip.tips || '[]');
+  const budget    = JSON.parse(trip.budget_breakdown || '{}');
+  const hotels    = JSON.parse(trip.hotels || '[]');
+  const attractions = JSON.parse(trip.attractions || '[]');
+  const tips      = JSON.parse(trip.tips || '[]');
+
+  const gold        = '#C9A96E';
+  const goldDim     = 'rgba(201,169,110,0.55)';
+  const goldBorder  = 'rgba(201,169,110,0.2)';
+  const bg          = '#0A0805';
+  const surface     = 'rgba(20,16,10,0.85)';
+  const textPrimary = '#E8E2D9';
+  const textMuted   = 'rgba(180,168,148,0.65)';
+  const displayFont = '"Cormorant Garamond", Georgia, serif';
+  const bodyFont    = '"DM Sans", system-ui, sans-serif';
 
   return (
-    <div className="min-h-screen bg-zinc-950 py-8 px-4">
-      <div className="max-w-3xl mx-auto">
+    <div style={{ minHeight: '100vh', background: bg, fontFamily: bodyFont, color: textPrimary }}>
 
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600/10 border border-blue-500/20 rounded-full text-blue-400 text-sm mb-4">
-            Shared Trip Plan by Voyager AI
-          </div>
-          <h1 className="text-4xl font-bold text-white capitalize mb-3">
-            {trip.destination}
-          </h1>
-          <div className="flex flex-wrap justify-center gap-3 text-sm text-zinc-400">
-            <span className="flex items-center gap-1"><Clock size={14} />{trip.duration} days</span>
-            <span className="flex items-center gap-1"><DollarSign size={14} />${trip.budget} / Rs.{(trip.budget * 83).toLocaleString('en-IN')}</span>
-            <span className="flex items-center gap-1"><Users size={14} />{trip.travellers} traveller(s)</span>
-            <span className="px-2 py-0.5 bg-blue-600/20 text-blue-400 rounded-full capitalize">{trip.tripType}</span>
-          </div>
+      {/* ── Hero ── */}
+      <div style={{
+        background: 'linear-gradient(180deg, rgba(201,169,110,0.08) 0%, rgba(10,8,5,0) 100%)',
+        borderBottom: `1px solid ${goldBorder}`,
+        padding: '48px 24px 36px',
+        textAlign: 'center',
+      }}>
+        <div style={{
+          display: 'inline-flex', alignItems: 'center', gap: 8,
+          padding: '6px 18px',
+          background: 'rgba(201,169,110,0.08)',
+          border: `1px solid ${goldBorder}`,
+          borderRadius: 20,
+          fontSize: '0.72rem', letterSpacing: '0.1em', textTransform: 'uppercase',
+          color: gold, marginBottom: 20,
+        }}>
+          ✦ Shared Trip by Voyager AI
         </div>
+
+        <h1 style={{
+          fontFamily: displayFont, fontWeight: 300,
+          fontSize: 'clamp(2.2rem, 6vw, 3.6rem)',
+          color: '#F0EAE0', letterSpacing: '0.04em',
+          textTransform: 'capitalize', marginBottom: 16,
+        }}>
+          {trip.destination}
+        </h1>
+
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 10 }}>
+          {[
+            { label: `${trip.duration} days` },
+            { label: `$${trip.budget} / ₹${(trip.budget * 83).toLocaleString('en-IN')}` },
+            { label: `${trip.travellers} traveller${trip.travellers > 1 ? 's' : ''}` },
+            { label: trip.tripType, accent: true },
+          ].map((chip, i) => (
+            <span key={i} style={{
+              padding: '5px 14px', borderRadius: 20, fontSize: '0.78rem',
+              background: chip.accent ? 'rgba(201,169,110,0.15)' : 'rgba(255,255,255,0.05)',
+              border: chip.accent ? `1px solid rgba(201,169,110,0.3)` : '1px solid rgba(255,255,255,0.1)',
+              color: chip.accent ? gold : 'rgba(220,210,190,0.8)',
+              textTransform: 'capitalize',
+            }}>{chip.label}</span>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Content ── */}
+      <div style={{ maxWidth: 860, margin: '0 auto', padding: '32px 16px 64px', display: 'flex', flexDirection: 'column', gap: 24 }}>
 
         {/* Budget */}
         {Object.keys(budget).length > 0 && (
-          <div className="bg-zinc-900 border border-zinc-700/50 rounded-2xl p-6 mb-6">
-            <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-              <DollarSign size={18} className="text-green-400" /> Budget Breakdown
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <Section title="Budget Breakdown" icon="💰">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 10, marginBottom: 10 }}>
               {Object.entries(budget).map(([key, val]) => (
-                <div key={key} className="bg-zinc-800 rounded-xl p-3 text-center">
-                  <p className="text-xs text-zinc-500 capitalize mb-1">{key}</p>
-                  <p className="text-lg font-bold text-green-400">${val}</p>
-                  <p className="text-xs text-zinc-600">Rs.{(val * 83).toLocaleString('en-IN')}</p>
+                <div key={key} style={{ background: surface, border: `1px solid ${goldBorder}`, borderRadius: 10, padding: '12px 10px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.62rem', color: textMuted, textTransform: 'capitalize', marginBottom: 5 }}>{key}</div>
+                  <div style={{ fontFamily: displayFont, fontSize: '1.3rem', color: '#4ADE80', fontWeight: 300 }}>${val}</div>
+                  <div style={{ fontSize: '0.62rem', color: textMuted, marginTop: 3 }}>₹{(val * 83).toLocaleString('en-IN')}</div>
                 </div>
               ))}
             </div>
-          </div>
+            <div style={{ background: surface, border: `1px solid ${goldBorder}`, borderRadius: 10, padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.82rem', color: textMuted }}>Total</span>
+              <div>
+                <span style={{ fontFamily: displayFont, fontSize: '1.2rem', color: textPrimary }}>${trip.budget}</span>
+                <span style={{ fontSize: '0.75rem', color: textMuted, marginLeft: 8 }}>/ ₹{(trip.budget * 83).toLocaleString('en-IN')}</span>
+              </div>
+            </div>
+          </Section>
         )}
 
         {/* Itinerary */}
         {itinerary.length > 0 && (
-          <div className="bg-zinc-900 border border-zinc-700/50 rounded-2xl p-6 mb-6">
-            <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-              <Clock size={18} className="text-blue-400" /> Day-by-Day Itinerary
-            </h2>
-            <div className="space-y-4">
+          <Section title="Day-by-Day Itinerary" icon="📋">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {itinerary.map((day, i) => (
-                <div key={i} className="border border-zinc-700/50 rounded-xl overflow-hidden">
-                  <div className="bg-zinc-800 px-4 py-3 flex items-center gap-3">
-                    <span className="w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
-                      {day.day}
-                    </span>
+                <div key={i} style={{ background: surface, border: `1px solid ${goldBorder}`, borderRadius: 12, overflow: 'hidden' }}>
+                  {/* Day header */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: 'rgba(201,169,110,0.05)', borderBottom: `1px solid ${goldBorder}` }}>
+                    <span style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(201,169,110,0.15)', border: `1px solid ${goldBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: displayFont, fontSize: '0.85rem', color: gold, flexShrink: 0 }}>{day.day}</span>
                     <div>
-                      <p className="font-semibold text-white text-sm">{day.title}</p>
-                      {day.theme && <p className="text-xs text-blue-400">{day.theme}</p>}
+                      <div style={{ fontWeight: 500, color: textPrimary, fontSize: '0.9rem' }}>{day.title}</div>
+                      {day.theme && <div style={{ fontSize: '0.7rem', color: goldDim, marginTop: 2 }}>{day.theme}</div>}
                     </div>
+                    {day.dailyTotal && <span style={{ marginLeft: 'auto', fontSize: '0.72rem', color: '#4ADE80' }}>{day.dailyTotal}</span>}
                   </div>
-                  <div className="p-4 space-y-2">
+
+                  <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {/* Highlight */}
+                    {day.dayHighlight && (
+                      <div style={{ padding: '8px 12px', background: 'rgba(201,169,110,0.07)', border: `1px solid rgba(201,169,110,0.18)`, borderRadius: 8, fontSize: '0.82rem', color: '#E8E2D9' }}>
+                        ⭐ {day.dayHighlight}
+                      </div>
+                    )}
+
+                    {/* Activities */}
                     {Array.isArray(day.activities) && day.activities.map((act, j) => {
                       const isObj = typeof act === 'object' && act !== null;
                       return (
-                        <div key={j} className="flex gap-3 bg-zinc-800/50 rounded-lg p-3">
+                        <div key={j} style={{ display: 'flex', gap: 10, background: 'rgba(15,12,8,0.6)', borderRadius: 9, padding: '9px 12px', border: `1px solid rgba(201,169,110,0.07)` }}>
                           {isObj && act.time && (
-                            <span className="text-xs text-blue-400 font-semibold min-w-[60px]">{act.time}</span>
+                            <span style={{ fontSize: '0.68rem', color: '#60A5FA', background: 'rgba(96,165,250,0.1)', padding: '2px 7px', borderRadius: 5, fontWeight: 500, flexShrink: 0, alignSelf: 'flex-start', marginTop: 2 }}>{act.time}</span>
                           )}
-                          <div>
+                          <div style={{ flex: 1 }}>
                             {isObj ? (
                               <>
-                                <p className="text-white text-sm font-medium">{act.place}</p>
-                                {act.description && <p className="text-zinc-400 text-xs mt-1">{act.description}</p>}
-                                {act.cost && <p className="text-green-400 text-xs mt-1">{act.cost}</p>}
+                                <div style={{ fontWeight: 500, color: textPrimary, fontSize: '0.85rem' }}>{act.place}</div>
+                                {act.description && <div style={{ fontSize: '0.75rem', color: textMuted, marginTop: 4, lineHeight: 1.5 }}>{act.description}</div>}
+                                <div style={{ display: 'flex', gap: 6, marginTop: 5, flexWrap: 'wrap' }}>
+                                  {act.duration && <span style={{ fontSize: '0.65rem', padding: '2px 7px', borderRadius: 20, background: 'rgba(201,169,110,0.08)', color: goldDim }}>{act.duration}</span>}
+                                  {act.cost && <span style={{ fontSize: '0.65rem', padding: '2px 7px', borderRadius: 20, background: 'rgba(74,222,128,0.08)', color: '#4ADE80' }}>{act.cost}</span>}
+                                </div>
+                                {act.tips && <div style={{ fontSize: '0.7rem', color: '#F6A84B', marginTop: 5, fontStyle: 'italic' }}>Tip: {act.tips}</div>}
                               </>
                             ) : (
-                              <p className="text-zinc-300 text-sm">{act}</p>
+                              <div style={{ fontSize: '0.82rem', color: textMuted }}>{act}</div>
                             )}
                           </div>
                         </div>
                       );
                     })}
+
+                    {/* Meals */}
                     {(day.breakfast || day.lunch || day.dinner) && (
-                      <div className="grid grid-cols-3 gap-2 mt-3">
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 7, marginTop: 4 }}>
                         {[
-                          { label: 'Breakfast', data: day.breakfast, color: 'text-yellow-400' },
-                          { label: 'Lunch', data: day.lunch, color: 'text-orange-400' },
-                          { label: 'Dinner', data: day.dinner, color: 'text-red-400' },
-                        ].map(({ label, data, color }) => data && (
-                          <div key={label} className="bg-zinc-800 rounded-lg p-2">
-                            <p className={`text-xs font-semibold ${color}`}>{label}</p>
-                            <p className="text-white text-xs">{data.place}</p>
-                            <p className="text-zinc-500 text-xs">{data.dish}</p>
+                          { label: 'Breakfast', data: day.breakfast, color: '#FCD34D', bg: 'rgba(252,211,77,0.07)', border: 'rgba(252,211,77,0.18)' },
+                          { label: 'Lunch',     data: day.lunch,      color: '#F6A84B', bg: 'rgba(246,168,75,0.07)',  border: 'rgba(246,168,75,0.18)'  },
+                          { label: 'Dinner',    data: day.dinner,     color: '#F08080', bg: 'rgba(240,128,128,0.07)', border: 'rgba(240,128,128,0.18)' },
+                        ].map(({ label, data, color, bg: mbg, border: mb }) => data ? (
+                          <div key={label} style={{ background: mbg, border: `1px solid ${mb}`, borderRadius: 8, padding: '8px 10px' }}>
+                            <div style={{ fontSize: '0.6rem', color, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4 }}>{label}</div>
+                            <div style={{ fontSize: '0.78rem', color: textPrimary, fontWeight: 500 }}>{data.place}</div>
+                            <div style={{ fontSize: '0.7rem', color: textMuted, marginTop: 2 }}>{data.dish}</div>
+                            <div style={{ fontSize: '0.7rem', color: '#4ADE80', marginTop: 3 }}>{data.cost}</div>
                           </div>
-                        ))}
+                        ) : <div key={label} />)}
+                      </div>
+                    )}
+
+                    {/* Accommodation + Transport */}
+                    {(day.accommodation || day.transport) && (
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 7 }}>
+                        {day.accommodation && (
+                          <div style={{ background: 'rgba(167,139,250,0.07)', border: '1px solid rgba(167,139,250,0.18)', borderRadius: 8, padding: '8px 10px' }}>
+                            <div style={{ fontSize: '0.6rem', color: '#A78BFA', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 3 }}>Stay</div>
+                            <div style={{ fontSize: '0.75rem', color: textMuted }}>{day.accommodation}</div>
+                          </div>
+                        )}
+                        {day.transport && (
+                          <div style={{ background: 'rgba(34,211,238,0.06)', border: '1px solid rgba(34,211,238,0.18)', borderRadius: 8, padding: '8px 10px' }}>
+                            <div style={{ fontSize: '0.6rem', color: '#22D3EE', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 3 }}>Transport</div>
+                            <div style={{ fontSize: '0.75rem', color: textMuted }}>{day.transport}</div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
                 </div>
               ))}
             </div>
-          </div>
+          </Section>
         )}
 
         {/* Hotels */}
         {hotels.length > 0 && (
-          <div className="bg-zinc-900 border border-zinc-700/50 rounded-2xl p-6 mb-6">
-            <h2 className="text-lg font-bold text-white mb-4">Recommended Hotels</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <Section title="Recommended Hotels" icon="🏨">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px,1fr))', gap: 10 }}>
               {hotels.map((hotel, i) => (
-                <div key={i} className="bg-zinc-800 rounded-xl p-4">
-                  <p className="font-medium text-white text-sm">{hotel.name}</p>
-                  <p className="text-green-400 text-sm">${hotel.price}/night</p>
-                  <p className="text-zinc-400 text-xs mt-1">{hotel.description}</p>
+                <div key={i} style={{ background: surface, border: `1px solid ${goldBorder}`, borderRadius: 10, padding: '14px 16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
+                    <div style={{ fontWeight: 500, color: textPrimary, fontSize: '0.875rem' }}>{hotel.name}</div>
+                    <span style={{ fontSize: '0.7rem', color: '#FCD34D', flexShrink: 0, marginLeft: 8 }}>⭐ {hotel.rating}</span>
+                  </div>
+                  {hotel.area && <div style={{ fontSize: '0.7rem', color: textMuted, marginBottom: 6 }}>{hotel.area}</div>}
+                  <div style={{ fontSize: '0.88rem', fontFamily: displayFont, color: '#4ADE80' }}>
+                    ${hotel.price}/night
+                    {hotel.priceINR && <span style={{ fontSize: '0.7rem', color: textMuted, marginLeft: 6 }}>₹{hotel.priceINR?.toLocaleString('en-IN')}</span>}
+                  </div>
+                  {hotel.description && <div style={{ fontSize: '0.72rem', color: textMuted, marginTop: 5, lineHeight: 1.5 }}>{hotel.description}</div>}
                 </div>
               ))}
             </div>
-          </div>
+          </Section>
+        )}
+
+        {/* Attractions */}
+        {attractions.length > 0 && (
+          <Section title="Top Attractions" icon="📍">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px,1fr))', gap: 10 }}>
+              {attractions.map((att, i) => (
+                <div key={i} style={{ background: surface, border: `1px solid ${goldBorder}`, borderRadius: 10, padding: '14px 16px' }}>
+                  <div style={{ fontWeight: 500, color: textPrimary, fontSize: '0.875rem', marginBottom: 7 }}>{att.name}</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                    {att.distance  && <span style={{ padding: '2px 7px', borderRadius: 20, background: 'rgba(201,169,110,0.06)', border: `1px solid ${goldBorder}`, fontSize: '0.63rem', color: textMuted }}>{att.distance}</span>}
+                    {att.entry_fee && <span style={{ padding: '2px 7px', borderRadius: 20, background: 'rgba(74,222,128,0.06)', border: '1px solid rgba(74,222,128,0.18)', fontSize: '0.63rem', color: '#4ADE80' }}>{att.entry_fee}</span>}
+                    {att.best_time && <span style={{ padding: '2px 7px', borderRadius: 20, background: 'rgba(96,165,250,0.06)', border: '1px solid rgba(96,165,250,0.18)', fontSize: '0.63rem', color: '#60A5FA' }}>{att.best_time}</span>}
+                  </div>
+                  {att.tips && <div style={{ fontSize: '0.7rem', color: textMuted, marginTop: 6, fontStyle: 'italic' }}>{att.tips}</div>}
+                </div>
+              ))}
+            </div>
+          </Section>
         )}
 
         {/* Tips */}
         {tips.length > 0 && (
-          <div className="bg-zinc-900 border border-zinc-700/50 rounded-2xl p-6 mb-6">
-            <h2 className="text-lg font-bold text-white mb-4">Travel Tips</h2>
-            <div className="space-y-2">
+          <Section title="Travel Tips" icon="💡">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
               {tips.map((tip, i) => (
-                <div key={i} className="flex gap-3 text-sm text-zinc-300 bg-zinc-800 rounded-lg p-3">
-                  <span className="text-yellow-400 font-bold">{i + 1}.</span>
-                  <span>{tip}</span>
+                <div key={i} style={{ display: 'flex', gap: 10, background: surface, borderRadius: 9, padding: '10px 14px', border: `1px solid ${goldBorder}` }}>
+                  <span style={{ color: '#FCD34D', fontWeight: 600, flexShrink: 0, fontSize: '0.8rem' }}>{i + 1}.</span>
+                  <span style={{ fontSize: '0.83rem', color: textMuted, lineHeight: 1.55 }}>{tip}</span>
                 </div>
               ))}
             </div>
-          </div>
+          </Section>
         )}
 
         {/* CTA */}
-        <div className="text-center mt-8 p-6 bg-gradient-to-br from-blue-600/20 to-purple-600/20 border border-blue-500/20 rounded-2xl">
-          <p className="text-white font-semibold mb-2">Plan your own trip with Voyager AI</p>
-          <p className="text-zinc-400 text-sm mb-4">Get personalized itineraries, budget plans, and more</p>
-          <a
-  href="/"
-  className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition text-sm"
->
-  Try Voyager AI Free
-</a>
+        <div style={{
+          textAlign: 'center', padding: '32px 24px',
+          background: 'rgba(201,169,110,0.06)',
+          border: `1px solid ${goldBorder}`,
+          borderRadius: 18, marginTop: 8,
+        }}>
+          <div style={{ fontFamily: displayFont, fontWeight: 300, fontSize: '1.6rem', color: textPrimary, marginBottom: 8 }}>
+            Plan your own journey
+          </div>
+          <div style={{ fontSize: '0.85rem', color: textMuted, marginBottom: 20 }}>
+            Get personalised AI itineraries, budget plans, hotel picks and more
+          </div>
+          <a href="/"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 8,
+              padding: '12px 28px',
+              background: 'rgba(201,169,110,0.9)',
+              color: '#0A0805',
+              fontWeight: 600, fontSize: '0.88rem',
+              borderRadius: 10, textDecoration: 'none',
+              transition: 'all 0.2s',
+            }}
+          >
+            Try Voyager AI Free ✦
+          </a>
         </div>
 
+      </div>
+    </div>
+  );
+}
+
+// ── Small reusable section wrapper ──────────────────────────────────────────
+function Section({ title, icon, children }) {
+  return (
+    <div style={{
+      background: 'rgba(15,12,8,0.6)',
+      border: 'rgba(201,169,110,0.15) 1px solid',
+      borderRadius: 16, overflow: 'hidden',
+    }}>
+      <div style={{
+        padding: '14px 20px',
+        borderBottom: '1px solid rgba(201,169,110,0.12)',
+        display: 'flex', alignItems: 'center', gap: 10,
+        background: 'rgba(201,169,110,0.04)',
+      }}>
+        <span style={{ fontSize: '1rem' }}>{icon}</span>
+        <h2 style={{
+          fontFamily: '"Cormorant Garamond", Georgia, serif',
+          fontWeight: 300, fontSize: '1.1rem',
+          color: '#E8E2D9', letterSpacing: '0.04em', margin: 0,
+        }}>{title}</h2>
+      </div>
+      <div style={{ padding: '16px 16px' }}>
+        {children}
       </div>
     </div>
   );

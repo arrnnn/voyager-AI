@@ -31,6 +31,7 @@ model Trip {
   travellers       Int
   tripType         String
   saved            Boolean  @default(false)
+  shareToken       String?  @unique
   itinerary        String
   budget_breakdown String?
   hotels           String?
@@ -40,6 +41,7 @@ model Trip {
   updatedAt        DateTime @updatedAt
   @@index([userId])
   @@index([createdAt])
+  @@index([shareToken])
 }
 
 model Usage {
