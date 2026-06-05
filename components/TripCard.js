@@ -84,7 +84,7 @@ export default function TripCard({ trip, onDelete, onExport, onView }) {
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
           {date && (
-            <span style={{ fontSize: '0.75rem', color: 'rgba(180,168,148,0.5)', letterSpacing: '0.02em' }}>
+            <span style={{ fontSize: '0.75rem', color: 'rgba(180,148,148,0.5)', letterSpacing: '0.02em' }}>
               {date}
             </span>
           )}
@@ -106,7 +106,7 @@ export default function TripCard({ trip, onDelete, onExport, onView }) {
         </div>
       </div>
 
-      {/* Actions */}
+      {/* ✅ FIXED: Actions — 44px touch targets, tap-friendly */}
       <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
         <ActionBtn onClick={onView} title="View" color="rgba(201,169,110,0.7)">
           <Eye size={14} />
@@ -129,12 +129,17 @@ function ActionBtn({ onClick, children, color }) {
       onClick={onClick}
       style={{
         display: 'flex', alignItems: 'center', gap: 5,
-        padding: '7px 12px',
+        // ✅ 44px min height = iOS & Android minimum tap target
+        minHeight: 44,
+        padding: '0 12px',
         background: 'rgba(201,169,110,0.08)',
         border: '1px solid rgba(201,169,110,0.2)',
         borderRadius: 8, cursor: 'pointer',
         color: color || '#E8E2D9',
         transition: 'all 0.2s ease',
+        // ✅ Removes ghost tap highlight and 300ms delay on mobile
+        WebkitTapHighlightColor: 'transparent',
+        touchAction: 'manipulation',
       }}
       onMouseEnter={e => {
         e.currentTarget.style.background = 'rgba(201,169,110,0.15)';
@@ -156,13 +161,17 @@ function IconBtn({ onClick, children, title, hoverColor, danger }) {
       onClick={onClick}
       title={title}
       style={{
-        width: 32, height: 32,
+        // ✅ 44px × 44px = meets iOS HIG & Material Design tap target spec
+        width: 44, height: 44,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         background: danger ? 'rgba(180,40,40,0.08)' : 'rgba(201,169,110,0.06)',
         border: `1px solid ${danger ? 'rgba(200,60,60,0.18)' : 'rgba(201,169,110,0.15)'}`,
         borderRadius: 8, cursor: 'pointer',
         color: danger ? 'rgba(240,128,128,0.6)' : 'rgba(180,168,148,0.55)',
         transition: 'all 0.2s ease',
+        // ✅ Removes ghost tap highlight and 300ms delay on mobile
+        WebkitTapHighlightColor: 'transparent',
+        touchAction: 'manipulation',
       }}
       onMouseEnter={e => {
         e.currentTarget.style.color = hoverColor || '#E8E2D9';

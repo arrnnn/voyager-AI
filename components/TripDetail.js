@@ -84,7 +84,6 @@ function injectChatStyles() {
 function AIAvatar({ size = 46, active = false }) {
   return (
     <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
-      {/* Pulse ring */}
       {active && (
         <div style={{
           position: 'absolute', inset: -3,
@@ -94,7 +93,6 @@ function AIAvatar({ size = 46, active = false }) {
           pointerEvents: 'none',
         }} />
       )}
-      {/* Orbiting particle 1 */}
       <div style={{
         position: 'absolute', inset: 0,
         animation: 'voy-orbit 3.2s linear infinite',
@@ -102,7 +100,6 @@ function AIAvatar({ size = 46, active = false }) {
       }}>
         <div style={{ position: 'absolute', top: '50%', left: '50%', width: 5, height: 5, borderRadius: '50%', background: gold, transform: 'translate(-50%,-50%)', boxShadow: `0 0 6px ${gold}` }} />
       </div>
-      {/* Orbiting particle 2 */}
       <div style={{
         position: 'absolute', inset: 0,
         animation: 'voy-orbit2 4.8s linear infinite',
@@ -110,7 +107,6 @@ function AIAvatar({ size = 46, active = false }) {
       }}>
         <div style={{ position: 'absolute', top: '50%', left: '50%', width: 3, height: 3, borderRadius: '50%', background: 'rgba(201,169,110,0.5)', transform: 'translate(-50%,-50%)' }} />
       </div>
-      {/* Core */}
       <div style={{
         width: size, height: size, borderRadius: '50%',
         background: 'linear-gradient(135deg, rgba(25,20,12,0.95), rgba(15,12,8,0.98))',
@@ -119,7 +115,6 @@ function AIAvatar({ size = 46, active = false }) {
         position: 'relative', overflow: 'hidden',
         animation: active ? 'voy-glow-pulse 2s ease-in-out infinite' : 'none',
       }}>
-        {/* Scan line */}
         <div style={{
           position: 'absolute', left: 0, right: 0, height: 1,
           background: `linear-gradient(90deg, transparent, ${gold}, transparent)`,
@@ -137,7 +132,6 @@ function AIAvatar({ size = 46, active = false }) {
           zIndex: 1,
         }}>AI</span>
       </div>
-      {/* Online dot */}
       <div style={{
         position: 'absolute', bottom: 1, right: 1,
         width: size * 0.22, height: size * 0.22, borderRadius: '50%',
@@ -208,7 +202,6 @@ function ChatMessage({ msg, isLast }) {
       flexDirection: isAI ? 'row' : 'row-reverse',
       animation: isAI ? 'voy-msg-in-ai 0.3s ease both' : 'voy-msg-in-user 0.3s ease both',
     }}>
-      {/* Avatar */}
       {isAI ? (
         <AIAvatar size={28} active={isLast} />
       ) : (
@@ -220,8 +213,6 @@ function ChatMessage({ msg, isLast }) {
           fontFamily: displayFont, fontStyle: 'italic', fontSize: '0.7rem', color: gold,
         }}>U</div>
       )}
-
-      {/* Bubble */}
       <div style={{
         maxWidth: '76%',
         padding: '10px 14px',
@@ -236,7 +227,6 @@ function ChatMessage({ msg, isLast }) {
         border: isAI ? `1px solid ${goldBorder}` : 'none',
         backdropFilter: isAI ? 'blur(8px)' : 'none',
         position: 'relative',
-        // Shimmer on last AI message
         ...(isAI && isLast ? {
           backgroundImage: 'linear-gradient(90deg, rgba(22,17,11,0.85) 0%, rgba(30,24,14,0.9) 40%, rgba(22,17,11,0.85) 80%)',
           backgroundSize: '200% 100%',
@@ -347,7 +337,7 @@ export default function TripDetail({ trip, plan = {}, onExport, onSave }) {
     ]
   } : null);
 
-  // ── Handlers (all original logic preserved) ──────────────────────────────
+  // ── Handlers ──────────────────────────────────────────────────────────────
   const handleExport = async () => {
     setIsExporting(true);
     try {
@@ -422,24 +412,71 @@ export default function TripDetail({ trip, plan = {}, onExport, onSave }) {
     } finally { setIsChatLoading(false); }
   };
 
-  // ── Action buttons ──────────────────────────────────────────────────────
+  // ── ✅ FIXED: ActionButtons — proper touch targets, no position:absolute overlap ──
   const ActionButtons = () => (
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
       {[
-        { onClick: handleSave, disabled: isSaving || saved, label: isSaving ? 'Saving…' : saved ? 'Saved' : 'Save', icon: saved ? <BookmarkCheck size={13} /> : <Bookmark size={13} />, active: saved },
-        { onClick: handleExport, disabled: isExporting, label: isExporting ? 'Exporting…' : 'Export', icon: <Download size={13} /> },
-        { onClick: handleShare, disabled: isSharing, label: isSharing ? 'Copying…' : 'Share', icon: <Share2 size={13} />, purple: true },
+        {
+          onClick: handleSave,
+          disabled: isSaving || saved,
+          label: isSaving ? 'Saving…' : saved ? 'Saved' : 'Save',
+          icon: saved ? <BookmarkCheck size={14} /> : <Bookmark size={14} />,
+          active: saved,
+        },
+        {
+          onClick: handleExport,
+          disabled: isExporting,
+          label: isExporting ? 'Exporting…' : 'Export',
+          icon: <Download size={14} />,
+        },
+        {
+          onClick: handleShare,
+          disabled: isSharing,
+          label: isSharing ? 'Copying…' : 'Share',
+          icon: <Share2 size={14} />,
+          purple: true,
+        },
       ].map((btn, i) => (
-        <button key={i} onClick={btn.onClick} disabled={btn.disabled}
+        <button
+          key={i}
+          onClick={btn.onClick}
+          disabled={btn.disabled}
           style={{
-            display: 'flex', alignItems: 'center', gap: 5, padding: '7px 12px', borderRadius: 9,
-            background: btn.active ? 'rgba(74,222,128,0.15)' : btn.purple ? 'rgba(167,139,250,0.12)' : 'rgba(0,0,0,0.45)',
-            border: btn.active ? '1px solid rgba(74,222,128,0.3)' : btn.purple ? '1px solid rgba(167,139,250,0.25)' : '1px solid rgba(255,255,255,0.1)',
-            backdropFilter: 'blur(8px)', color: btn.active ? '#4ADE80' : '#E8E2D9',
-            fontSize: '0.8rem', cursor: btn.disabled ? 'default' : 'pointer',
-            opacity: btn.disabled && !btn.active ? 0.6 : 1, transition: 'all 0.2s',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 6,
+            // ✅ 44px min height/width = iOS & Android minimum tap target
+            minHeight: 44,
+            minWidth: 44,
+            padding: '0 16px',
+            borderRadius: 10,
+            background: btn.active
+              ? 'rgba(74,222,128,0.15)'
+              : btn.purple
+              ? 'rgba(167,139,250,0.12)'
+              : 'rgba(0,0,0,0.55)',
+            border: btn.active
+              ? '1px solid rgba(74,222,128,0.3)'
+              : btn.purple
+              ? '1px solid rgba(167,139,250,0.25)'
+              : '1px solid rgba(255,255,255,0.12)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            color: btn.active ? '#4ADE80' : '#E8E2D9',
+            fontSize: '0.82rem',
+            fontFamily: bodyFont,
+            cursor: btn.disabled ? 'default' : 'pointer',
+            opacity: btn.disabled && !btn.active ? 0.6 : 1,
+            transition: 'all 0.2s',
+            // ✅ Removes 300ms tap delay on mobile, no ghost highlight
+            WebkitTapHighlightColor: 'transparent',
+            touchAction: 'manipulation',
           }}
-        >{btn.icon} {btn.label}</button>
+        >
+          {btn.icon}
+          {btn.label}
+        </button>
       ))}
     </div>
   );
@@ -464,8 +501,10 @@ export default function TripDetail({ trip, plan = {}, onExport, onSave }) {
                 <MetaChip accent>{trip.tripType}</MetaChip>
               </div>
             </div>
-            <div style={{ position: 'absolute', top: 16, right: 16 }}><ActionButtons /></div>
+            {/* ✅ REMOVED: position:absolute buttons from inside the photo overlay */}
           </div>
+
+          {/* Thumbnails */}
           <div style={{ display: 'flex', gap: 8, padding: '10px 12px', background: 'rgba(8,6,3,0.6)' }}>
             {photos.map((photo, i) => (
               <button key={i} onClick={() => setActivePhoto(i)}
@@ -475,17 +514,42 @@ export default function TripDetail({ trip, plan = {}, onExport, onSave }) {
               </button>
             ))}
           </div>
+
+          {/* ✅ FIXED: ActionButtons now live here — below photo, fully tappable on mobile */}
+          <div style={{
+            padding: '10px 12px 12px',
+            background: 'rgba(8,6,3,0.6)',
+            display: 'flex',
+            justifyContent: 'flex-end',
+            borderTop: '1px solid rgba(201,169,110,0.08)',
+          }}>
+            <ActionButtons />
+          </div>
         </div>
       ) : (
-        <div style={{ position: 'relative', height: 180, background: 'linear-gradient(135deg, rgba(201,169,110,0.1), rgba(15,12,8,0.9))', display: 'flex', alignItems: 'flex-end', padding: '0 24px 20px' }}>
-          <div>
-            <h2 style={{ fontFamily: displayFont, fontWeight: 300, fontSize: '2rem', color: '#F0EAE0', textTransform: 'capitalize', letterSpacing: '0.04em', marginBottom: 8 }}>{destination}</h2>
-            <div style={{ display: 'flex', gap: 14, fontSize: '0.8rem', color: textMuted }}>
-              <span>{trip.duration} days</span><span>${budgetUSD}</span><span>{trip.travellers} pax</span>
-              <span style={{ textTransform: 'capitalize' }}>{trip.tripType}</span>
+        /* ── No-photo fallback ── */
+        <div>
+          <div style={{ position: 'relative', height: 180, background: 'linear-gradient(135deg, rgba(201,169,110,0.1), rgba(15,12,8,0.9))', display: 'flex', alignItems: 'flex-end', padding: '0 24px 20px' }}>
+            <div>
+              <h2 style={{ fontFamily: displayFont, fontWeight: 300, fontSize: '2rem', color: '#F0EAE0', textTransform: 'capitalize', letterSpacing: '0.04em', marginBottom: 8 }}>{destination}</h2>
+              <div style={{ display: 'flex', gap: 14, fontSize: '0.8rem', color: textMuted }}>
+                <span>{trip.duration} days</span><span>${budgetUSD}</span><span>{trip.travellers} pax</span>
+                <span style={{ textTransform: 'capitalize' }}>{trip.tripType}</span>
+              </div>
             </div>
+            {/* ✅ REMOVED: position:absolute buttons from inside this div */}
           </div>
-          <div style={{ position: 'absolute', top: 16, right: 16 }}><ActionButtons /></div>
+
+          {/* ✅ FIXED: ActionButtons below the header bar — fully tappable on mobile */}
+          <div style={{
+            padding: '10px 16px 12px',
+            background: 'rgba(8,6,3,0.4)',
+            display: 'flex',
+            justifyContent: 'flex-end',
+            borderTop: '1px solid rgba(201,169,110,0.08)',
+          }}>
+            <ActionButtons />
+          </div>
         </div>
       )}
 
@@ -812,9 +876,7 @@ export default function TripDetail({ trip, plan = {}, onExport, onSave }) {
           </div>
         )}
 
-        {/* ══════════════════════════════════════════════════════════════════
-            ── UPGRADED AI CHAT BUTTON ──
-        ══════════════════════════════════════════════════════════════════ */}
+        {/* AI Chat Button */}
         <button
           type="button"
           onClick={() => {
@@ -830,9 +892,7 @@ export default function TripDetail({ trip, plan = {}, onExport, onSave }) {
             width: '100%',
             border: `1px solid ${chatHovered || showChat ? 'rgba(201,169,110,0.38)' : goldBorder}`,
             borderRadius: 16,
-            background: chatHovered || showChat
-              ? 'rgba(201,169,110,0.07)'
-              : 'rgba(15,12,8,0.7)',
+            background: chatHovered || showChat ? 'rgba(201,169,110,0.07)' : 'rgba(15,12,8,0.7)',
             backdropFilter: 'blur(16px)',
             cursor: 'pointer',
             padding: 0,
@@ -841,28 +901,21 @@ export default function TripDetail({ trip, plan = {}, onExport, onSave }) {
               ? '0 0 0 1px rgba(201,169,110,0.15), 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(201,169,110,0.08)'
               : '0 4px 20px rgba(0,0,0,0.3)',
             animation: showChat ? 'voy-btn-hover-glow 2.5s ease-in-out infinite' : 'none',
+            WebkitTapHighlightColor: 'transparent',
+            touchAction: 'manipulation',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 22px' }}>
-            {/* Left: avatar + info */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               <AIAvatar size={48} active={chatHovered || showChat} />
               <div style={{ textAlign: 'left' }}>
-                <div style={{
-                  fontFamily: displayFont,
-                  fontWeight: 300,
-                  fontSize: '1.1rem',
-                  color: text,
-                  letterSpacing: '0.04em',
-                  marginBottom: 3,
-                }}>
+                <div style={{ fontFamily: displayFont, fontWeight: 300, fontSize: '1.1rem', color: text, letterSpacing: '0.04em', marginBottom: 3 }}>
                   Voyager AI Assistant
                 </div>
                 <div style={{ fontSize: '0.72rem', color: goldDim, textTransform: 'capitalize', marginBottom: 6 }}>
                   {destination} Travel Expert
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                  {/* Live green dot */}
                   <div style={{ position: 'relative', width: 7, height: 7 }}>
                     <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: '#4ADE80', animation: 'voy-pulse-ring 1.8s ease-out infinite' }} />
                     <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#4ADE80', position: 'relative' }} />
@@ -871,7 +924,6 @@ export default function TripDetail({ trip, plan = {}, onExport, onSave }) {
                 </div>
               </div>
             </div>
-            {/* Right: icon */}
             <div style={{
               width: 40, height: 40, borderRadius: 12,
               background: 'rgba(201,169,110,0.1)',
@@ -880,39 +932,27 @@ export default function TripDetail({ trip, plan = {}, onExport, onSave }) {
               transition: 'all 0.3s',
               transform: chatHovered ? 'scale(1.08) rotate(-8deg)' : 'scale(1) rotate(0deg)',
             }}>
-              {showChat
-                ? <X size={16} color={gold} />
-                : <MessageCircle size={16} color={gold} />}
+              {showChat ? <X size={16} color={gold} /> : <MessageCircle size={16} color={gold} />}
             </div>
           </div>
         </button>
 
-        {/* ══════════════════════════════════════════════════════════════════
-            ── UPGRADED CHAT PANEL ──
-        ══════════════════════════════════════════════════════════════════ */}
+        {/* Chat Panel */}
         {showChat && (
           <div id="voy-chat" style={{
-            borderRadius: 16,
-            border: `1px solid ${goldBorder}`,
-            overflow: 'hidden',
-            background: 'rgba(10,8,5,0.92)',
-            backdropFilter: 'blur(24px)',
+            borderRadius: 16, border: `1px solid ${goldBorder}`, overflow: 'hidden',
+            background: 'rgba(10,8,5,0.92)', backdropFilter: 'blur(24px)',
             boxShadow: '0 16px 48px rgba(0,0,0,0.5), inset 0 1px 0 rgba(201,169,110,0.08)',
           }}>
-
-            {/* Header */}
             <div style={{
-              padding: '16px 18px',
-              background: 'rgba(15,12,8,0.85)',
+              padding: '16px 18px', background: 'rgba(15,12,8,0.85)',
               borderBottom: `1px solid ${goldBorder}`,
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <AIAvatar size={38} active={isChatLoading} />
                 <div>
-                  <div style={{ fontFamily: displayFont, fontWeight: 300, fontSize: '1rem', color: text, letterSpacing: '0.04em' }}>
-                    Voyager AI
-                  </div>
+                  <div style={{ fontFamily: displayFont, fontWeight: 300, fontSize: '1rem', color: text, letterSpacing: '0.04em' }}>Voyager AI</div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
                     {isChatLoading ? (
                       <>
@@ -929,7 +969,7 @@ export default function TripDetail({ trip, plan = {}, onExport, onSave }) {
                 </div>
               </div>
               <button type="button" onClick={() => setShowChat(false)}
-                style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(201,169,110,0.06)', border: `1px solid ${goldBorder}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: goldDim, transition: 'all 0.2s' }}
+                style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(201,169,110,0.06)', border: `1px solid ${goldBorder}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: goldDim, transition: 'all 0.2s', WebkitTapHighlightColor: 'transparent', touchAction: 'manipulation' }}
                 onMouseEnter={e => { e.currentTarget.style.background = 'rgba(201,169,110,0.12)'; e.currentTarget.style.color = gold; }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'rgba(201,169,110,0.06)'; e.currentTarget.style.color = goldDim; }}
               >
@@ -937,12 +977,10 @@ export default function TripDetail({ trip, plan = {}, onExport, onSave }) {
               </button>
             </div>
 
-            {/* Quick prompts — shown only before user has typed */}
             {messages.length === 1 && (
               <QuickPrompts destination={destination} onSend={handleChat} />
             )}
 
-            {/* Messages */}
             <div
               style={{ height: 300, overflowY: 'auto', padding: '16px 14px', display: 'flex', flexDirection: 'column', gap: 14 }}
               onClick={e => e.stopPropagation()}
@@ -950,18 +988,10 @@ export default function TripDetail({ trip, plan = {}, onExport, onSave }) {
               {messages.map((msg, i) => (
                 <ChatMessage key={i} msg={msg} isLast={i === messages.length - 1 && msg.role === 'assistant'} />
               ))}
-
-              {/* Waveform typing indicator */}
               {isChatLoading && (
                 <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                   <AIAvatar size={28} active />
-                  <div style={{
-                    padding: '10px 16px',
-                    borderRadius: '4px 14px 14px 14px',
-                    background: 'rgba(22,17,11,0.85)',
-                    border: `1px solid ${goldBorder}`,
-                    display: 'flex', alignItems: 'center',
-                  }}>
+                  <div style={{ padding: '10px 16px', borderRadius: '4px 14px 14px 14px', background: 'rgba(22,17,11,0.85)', border: `1px solid ${goldBorder}`, display: 'flex', alignItems: 'center' }}>
                     <WaveTyping />
                   </div>
                 </div>
@@ -969,7 +999,6 @@ export default function TripDetail({ trip, plan = {}, onExport, onSave }) {
               <div ref={chatEndRef} />
             </div>
 
-            {/* Input row */}
             <div style={{ padding: '10px 14px 12px', borderTop: `1px solid ${goldBorder}`, background: 'rgba(12,10,6,0.6)' }}>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                 <input
@@ -982,32 +1011,22 @@ export default function TripDetail({ trip, plan = {}, onExport, onSave }) {
                   onFocus={e => e.stopPropagation()}
                   placeholder={`Ask about ${destination}…`}
                   style={{
-                    flex: 1,
-                    padding: '10px 14px',
+                    flex: 1, padding: '10px 14px',
                     background: 'rgba(20,16,10,0.75)',
                     border: `1px solid ${goldBorder}`,
-                    borderRadius: 10,
-                    color: text,
-                    fontSize: '0.85rem',
-                    fontFamily: bodyFont,
-                    outline: 'none',
-                    transition: 'border-color 0.2s, box-shadow 0.2s',
+                    borderRadius: 10, color: text,
+                    fontSize: '0.85rem', fontFamily: bodyFont,
+                    outline: 'none', transition: 'border-color 0.2s, box-shadow 0.2s',
                   }}
-                  onFocusCapture={e => {
-                    e.target.style.borderColor = 'rgba(201,169,110,0.45)';
-                    e.target.style.boxShadow = '0 0 0 3px rgba(201,169,110,0.06)';
-                  }}
-                  onBlurCapture={e => {
-                    e.target.style.borderColor = goldBorder;
-                    e.target.style.boxShadow = 'none';
-                  }}
+                  onFocusCapture={e => { e.target.style.borderColor = 'rgba(201,169,110,0.45)'; e.target.style.boxShadow = '0 0 0 3px rgba(201,169,110,0.06)'; }}
+                  onBlurCapture={e => { e.target.style.borderColor = goldBorder; e.target.style.boxShadow = 'none'; }}
                 />
                 <button
                   type="button"
                   onMouseDown={e => { e.preventDefault(); handleChat(); }}
                   disabled={isChatLoading || !chatInput.trim()}
                   style={{
-                    width: 40, height: 40, flexShrink: 0,
+                    width: 44, height: 44, flexShrink: 0,
                     background: chatInput.trim() && !isChatLoading
                       ? `linear-gradient(135deg, rgba(201,169,110,0.9), rgba(168,132,74,0.9))`
                       : 'rgba(201,169,110,0.08)',
@@ -1017,10 +1036,11 @@ export default function TripDetail({ trip, plan = {}, onExport, onSave }) {
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     opacity: isChatLoading || !chatInput.trim() ? 0.4 : 1,
                     transition: 'all 0.2s',
-                    transform: chatInput.trim() && !isChatLoading ? 'scale(1)' : 'scale(0.95)',
+                    WebkitTapHighlightColor: 'transparent',
+                    touchAction: 'manipulation',
                   }}
                   onMouseEnter={e => { if (chatInput.trim() && !isChatLoading) e.currentTarget.style.transform = 'scale(1.06)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.transform = chatInput.trim() && !isChatLoading ? 'scale(1)' : 'scale(0.95)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; }}
                 >
                   <Send size={15} color={chatInput.trim() && !isChatLoading ? '#0A0905' : goldDim} />
                 </button>
