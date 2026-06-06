@@ -338,7 +338,7 @@ export default function TripDetail({ trip, plan = {}, onExport, onSave }) {
   } : null);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
-  const handleExport = async () => {
+ const handleExport = async () => {
     setIsExporting(true);
     try {
       const res = await fetch('/api/export-pdf', {
@@ -347,17 +347,18 @@ export default function TripDetail({ trip, plan = {}, onExport, onSave }) {
       });
       const data = await res.json();
       if (res.ok && data.html) {
+        // ✅ Open in new tab — works on mobile Safari & Chrome
+        // The HTML page has a "Download PDF" button powered by jsPDF + html2canvas
         const blob = new Blob([data.html], { type: 'text/html' });
         const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url; link.download = data.filename;
-        document.body.appendChild(link); link.click();
-        document.body.removeChild(link); URL.revokeObjectURL(url);
+        window.open(url, '_blank');
+        // Clean up after a delay to allow the tab to load
+        setTimeout(() => URL.revokeObjectURL(url), 30000);
       }
     } catch (err) { console.error('Export error:', err); }
     finally { setIsExporting(false); }
   };
-
+  
   const handleSave = async () => {
     setIsSaving(true);
     try {
